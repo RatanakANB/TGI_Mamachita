@@ -4,6 +4,7 @@
 #include "features/register.h"
 
 int main() {
+
     int option;
     printf("Welcome to TGI Mamachita!\n");
     printf("This is a simple C program to demonstrate menu features.\n");
