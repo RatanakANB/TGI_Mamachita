@@ -17,4 +17,4 @@ static inline void encrypt_password(char *password) {
     }
 }
 
-#endif // ENCRYPTION_H
+#endif
