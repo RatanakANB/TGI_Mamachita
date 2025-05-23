@@ -6,8 +6,8 @@
 int main() {
 
     int option;
-    printf("Welcome to TGI Mamachita!\n");
-    printf("This is a simple C program to demonstrate menu features.\n");
+    printf("\n\t\t  Welcome to TGI Mamachita!\n");
+    printf("\tThe most trusted E-Commerce platform you ever know.\n");
     while (1) {
         option = menu();
         printf("You selected option %d\n", option);
@@ -15,6 +15,7 @@ int main() {
             login();
         } else if (option == 2) {
             register_user();
+            break;
         } else if (option == 3) {
             printf("Exiting the program.\n");
             break;

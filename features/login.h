@@ -5,6 +5,9 @@
 #include <string.h>
 #include "menu.h"
 #include "encryption.h" // Include the encryption header
+#include "../dashboard/shop.h"
+#include "../dashboard/customer.h"
+#include "../dashboard/admin.h"
 
 #define USER_TYPE_ADMIN 0
 #define USER_TYPE_SHOP  1
@@ -83,12 +86,15 @@ int login() {
         switch (user_type_from_file) {
             case USER_TYPE_ADMIN:
                 printf("User Type: ADMIN\n");
+                admin_dashboard("DummyAdminName"); // Replace with actual admin name if needed
                 break;
             case USER_TYPE_SHOP:
                 printf("User Type: Shop\n");
+                shop_dashboard("DummyShopName"); // Replace with actual shop name if needed
                 break;
             case USER_TYPE_CUSTOMER:
                 printf("User Type: Customer\n");
+                customer_dashboard("DummyCustomerName"); // Replace with actual customer name if needed
                 break;
             default:
                 printf("User type (%d) is recognized but not specifically handled after login.\n", user_type_from_file);
@@ -98,7 +104,6 @@ int login() {
         printf("Invalid username or password. Please try again.\n");
     }
 
-    printf("Returning to menu...\n");
     return 0; 
 }
 
