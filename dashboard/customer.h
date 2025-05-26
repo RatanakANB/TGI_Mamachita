@@ -11,7 +11,7 @@ int customerMenu() {
     printf("3. Add funds\n");
     printf("4. Checkout\n");
     printf("5. Back\n");
-
+    return 0;
 }
 
 int customer_dashboard() {

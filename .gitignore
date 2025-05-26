@@ -1,0 +1,8 @@
+/dashboard/output/
+/output/
+/features/output/
+/features/Auth/output/
+.dist
+.vscode
+
+

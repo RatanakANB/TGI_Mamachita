@@ -3,10 +3,8 @@
 #include "features/login.h"
 #include "features/register.h"
 
-
 int main();
 int authenticate_user(int option);
-
 
 int authenticate_user( int option) {
     while (1){
@@ -42,5 +40,4 @@ int main() {
         }
     }
     return 0;
-
 }

@@ -12,6 +12,7 @@ int shopMenu(){
     printf("3. Update stock\n");
     printf("4. View items\n");
     printf("5. Back\n");
+    return 0;
 };
 
 int shop_dashboard() {
