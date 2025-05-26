@@ -13,7 +13,8 @@
 #define USER_TYPE_SHOP  1
 #define USER_TYPE_CUSTOMER 2
 
-
+int check_login(const char *username, const char *password, int *user_type_ptr);
+int login();
 
 int check_login(const char *username, const char *password, int *user_type_ptr) {
     FILE *file = fopen("../data/users.txt", "r");

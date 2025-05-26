@@ -13,6 +13,18 @@
 
 
 int is_user_exists(const char *username);
+int register_user();
+int count_users();
+static inline void regiType();
+
+
+static inline void regiType() {
+    printf("Select user type:\n");
+    printf("  1. Shop\n");
+    printf("  2. Customer\n");
+    printf("Enter your choice (1 or 2): ");
+}
+
 
 int count_users() {
     FILE *file = fopen("../data/users.txt", "r");
@@ -99,10 +111,7 @@ int register_user() {
         printf("This is the first user account. Registering as ADMIN.\n");
     } else {
         while (1) {
-            printf("Select user type:\n");
-            printf("  1. Shop\n");
-            printf("  2. Customer\n");
-            printf("Enter your choice (1 or 2): ");
+            regiType();
             fgets(user_type_choice, sizeof(user_type_choice), stdin);
             user_type_choice[strcspn(user_type_choice, "\n")] = '\0';
 

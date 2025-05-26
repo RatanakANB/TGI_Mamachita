@@ -10,8 +10,7 @@ int adminMenu() {
     printf("1. List all shops\n");
     printf("2. Delete shop\n");
     printf("3. List all customers\n");
-    printf("4. Back to main menu\n");
-}
+    printf("4. Back to main menu\n"); }
 
 int admin_dashboard() {
 
