@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 
+int customerMenu();
+int customer_dashboard();
+
 int customerMenu() {
     printf("\n=== CUSTOMER DASHBOARD ===\n");
     printf("1. Browse shops\n");
@@ -11,9 +14,8 @@ int customerMenu() {
     printf("3. Add funds\n");
     printf("4. Checkout\n");
     printf("5. Back\n");
-
+    return 0;
 }
-
 int customer_dashboard() {
 
 

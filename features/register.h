@@ -4,15 +4,66 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "encryption.h" // Include the encryption header
+#include <time.h>
+#include "encryption.h"
+#include "struct.h" // Include the struct definitions
 
 #define USER_TYPE_ADMIN 0
 #define USER_TYPE_SHOP  1
 #define USER_TYPE_CUSTOMER 2
 
-
-
 int is_user_exists(const char *username);
+int register_user();
+int count_users();
+static inline void regiType();
+void get_current_date(char *date);
+void generate_shop_id(char *unique_id, const char *shop_name);
+void generate_customer_id(char *unique_id, const char *username);
+void generate_admin_id(char *unique_id, int user_count);
+
+// Function to get current date in DDMMYY format
+void get_current_date(char *date) {
+    time_t t = time(NULL);
+    struct tm *tm = localtime(&t);
+    strftime(date, 7, "%d%m%y", tm); // Format as DDMMYY
+}
+
+// Function to generate UniqueID for Shop
+void generate_shop_id(char *unique_id, const char *shop_name) {
+    char date[7];
+    get_current_date(date); // Get dynamic date
+    int len = strlen(shop_name);
+    char middle = len > 0 ? shop_name[len / 2] : 'X'; // Middle character, default 'X'
+    char first = len > 0 ? shop_name[0] : 'X'; // First character, default 'X'
+    char last = len > 0 ? shop_name[len - 1] : 'X'; // Last character, default 'X'
+    snprintf(unique_id, MAX_ID_LEN, "SP%c%c%c%s", first, last, middle, date);
+}
+
+// Function to generate UniqueID for Customer
+void generate_customer_id(char *unique_id, const char *username) {
+    char date[7];
+    get_current_date(date); // Get dynamic date
+    char user_part[4] = "___"; // Default padding with underscores
+    int len = strlen(username);
+    for (int i = 0; i < 3 && i < len; i++) {
+        user_part[i] = username[i]; // Take first 3 characters
+    }
+    srand(time(NULL)); // Seed random number generator
+    int random_digit = rand() % 10; // Random digit 0-9
+    snprintf(unique_id, MAX_ID_LEN, "CM%s%s%d", date, user_part, random_digit);
+}
+
+// Function to generate UniqueID for Admin
+void generate_admin_id(char *unique_id, int user_count) {
+    snprintf(unique_id, MAX_ID_LEN, "AD%d", user_count + 1); // Simple counter-based ID
+}
+
+static inline void regiType() {
+    printf("Select user type:\n");
+    printf("  1. Shop\n");
+    printf("  2. Customer\n");
+    printf("Enter your choice (1 or 2): ");
+}
 
 int count_users() {
     FILE *file = fopen("../data/users.txt", "r");
@@ -38,10 +89,11 @@ int is_user_exists(const char *username) {
     }
 
     char line[150]; 
+    userName user;
     while (fgets(line, sizeof(line), file) != NULL) {
-        char stored_user[50];
-        if (sscanf(line, "%49[^:]:", stored_user) == 1) { 
-            if (strcmp(stored_user, username) == 0) {
+        if (sscanf(line, "%19[^,],%49[^,],%49[^,],%d", 
+                   user.id, user.username, user.password, &user.usertype) == 4) { 
+            if (strcmp(user.username, username) == 0) {
                 fclose(file);
                 return 1;
             }
@@ -52,8 +104,10 @@ int is_user_exists(const char *username) {
 }
 
 int register_user() {
-    char username[50], password[50], user_type_choice[10];
-    int user_type;
+    userName user;
+    Shop shop;
+    char user_type_choice[10];
+    float default_balance = 9000.00; // Default balance for customers
 
     printf("\n--- Register ---\n");
     printf("Enter 'back' at any point to return to the main menu.\n\n");
@@ -62,47 +116,45 @@ int register_user() {
 
     while (1) {
         printf("Enter your desired username: ");
-        fgets(username, sizeof(username), stdin);
-        username[strcspn(username, "\n")] = '\0'; 
-        if (strcmp(username, "back") == 0) {
+        fgets(user.username, MAX_USERNAME_LEN, stdin);
+        user.username[strcspn(user.username, "\n")] = '\0'; 
+        if (strcmp(user.username, "back") == 0) {
             printf("Returning to menu...\n");
             return 0;
         }
-        if (strlen(username) == 0) {
+        if (strlen(user.username) == 0) {
             printf("Username cannot be empty. Please try again.\n");
             continue;
         }
-        if (is_user_exists(username)) {
-            printf("Username '%s' already exists. Please choose a different one.\n", username);
+        if (is_user_exists(user.username)) {
+            printf("Username '%s' already exists. Please choose a different one.\n", user.username);
         } else {
             break;
         }
     }
 
     printf("Enter your desired password: ");
-    fgets(password, sizeof(password), stdin);
-    password[strcspn(password, "\n")] = '\0'; 
-    if (strcmp(password, "back") == 0) {
+    fgets(user.password, MAX_PASSWORD_LEN, stdin);
+    user.password[strcspn(user.password, "\n")] = '\0'; 
+    if (strcmp(user.password, "back") == 0) {
         printf("Returning to menu...\n");
         return 0;
     }
-    if (strlen(password) == 0) {
+    if (strlen(user.password) == 0) {
         printf("Password cannot be empty. Registration cancelled.\n");
         printf("Returning to menu...\n");
         return 0;
     }
 
-    encrypt_password(password); // Encrypt the password before storing
+    encrypt_password(user.password); // Encrypt the password in place
 
     if (existing_users_count == 0) {
-        user_type = USER_TYPE_ADMIN;
+        user.usertype = USER_TYPE_ADMIN;
         printf("This is the first user account. Registering as ADMIN.\n");
+        generate_admin_id(user.id, existing_users_count);
     } else {
         while (1) {
-            printf("Select user type:\n");
-            printf("  1. Shop\n");
-            printf("  2. Customer\n");
-            printf("Enter your choice (1 or 2): ");
+            regiType();
             fgets(user_type_choice, sizeof(user_type_choice), stdin);
             user_type_choice[strcspn(user_type_choice, "\n")] = '\0';
 
@@ -114,10 +166,26 @@ int register_user() {
             int choice = atoi(user_type_choice); 
 
             if (choice == 1) {
-                user_type = USER_TYPE_SHOP;
+                user.usertype = USER_TYPE_SHOP;
+                printf("Enter your shop name: ");
+                fgets(shop.shop_name, MAX_SHOP_NAME_LEN, stdin);
+                shop.shop_name[strcspn(shop.shop_name, "\n")] = '\0';
+                if (strcmp(shop.shop_name, "back") == 0) {
+                    printf("Returning to menu...\n");
+                    return 0;
+                }
+                if (strlen(shop.shop_name) == 0) {
+                    printf("Shop name cannot be empty. Registration cancelled.\n");
+                    printf("Returning to menu...\n");
+                    return 0;
+                }
+                generate_shop_id(user.id, shop.shop_name);
+                strcpy(shop.id, user.id); // Inherit ID from user
                 break;
             } else if (choice == 2) {
-                user_type = USER_TYPE_CUSTOMER;
+                user.usertype = USER_TYPE_CUSTOMER;
+                shop.shop_name[0] = '\0'; // No shop name for customers
+                generate_customer_id(user.id, user.username);
                 break;
             } else {
                 printf("Invalid choice. Please enter 1 for Shop or 2 for Customer.\n");
@@ -132,21 +200,41 @@ int register_user() {
         return 0;
     }
 
-    fprintf(file, "%s:%s:%d\n", username, password, user_type);
+    fprintf(file, "%s,%s,%s,%d\n", user.id, user.username, user.password, user.usertype);
     fclose(file);
 
+    if (user.usertype == USER_TYPE_SHOP) {
+        FILE *shop_file = fopen("../data/shop.txt", "a");
+        if (shop_file == NULL) {
+            perror("Error opening shop.txt for registration. Please ensure the 'data' directory exists.");
+            printf("Returning to menu...\n");
+            return 0;
+        }
+        fprintf(shop_file, "%s,%s\n", shop.id, shop.shop_name);
+        fclose(shop_file);
+    } else if (user.usertype == USER_TYPE_CUSTOMER) {
+        FILE *customer_file = fopen("../data/customer.txt", "a");
+        if (customer_file == NULL) {
+            perror("Error opening customer.txt for registration. Please ensure the 'data' directory exists.");
+            printf("Returning to menu...\n");
+            return 0;
+        }
+        fprintf(customer_file, "%s,%s,%.2f\n", user.id, user.username, default_balance);
+        fclose(customer_file);
+    }
+
     const char *type_string;
-    switch (user_type) {
+    switch (user.usertype) {
         case USER_TYPE_ADMIN: type_string = "ADMIN"; break;
         case USER_TYPE_SHOP: type_string = "Shop"; break;
         case USER_TYPE_CUSTOMER: type_string = "Customer"; break;
         default: type_string = "Unknown"; break;
     }
 
-    printf("Registration successful for user '%s' as a %s!\n", username, type_string);
+    printf("Registration successful for user '%s' as a %s with ID '%s'!\n", user.username, type_string, user.id);
     printf("You can now log in.\n");
     printf("Returning to menu...\n");
     return 0; 
 }
 
-#endif // REGISTER_H
+#endif

@@ -2,6 +2,8 @@
 #define MENU_H
 #include <stdio.h>
 
+int menu();
+
 int menu() {
     int choice;
     printf("\n1. Login\n");

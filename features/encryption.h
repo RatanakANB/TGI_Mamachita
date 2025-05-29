@@ -3,6 +3,8 @@
 
 #include <ctype.h>
 
+static inline void encrypt_password(char *password);
+
 static inline void encrypt_password(char *password) {
     for (int i = 0; password[i] != '\0'; i++) {
         if (isdigit(password[i])) {
@@ -17,4 +19,4 @@ static inline void encrypt_password(char *password) {
     }
 }
 
-#endif // ENCRYPTION_H
+#endif

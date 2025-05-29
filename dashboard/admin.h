@@ -4,13 +4,16 @@
 #include <stdio.h>
 #include <string.h>
 
+int adminMenu();
+int admin_dashboard();
 
 int adminMenu() {
     printf("\n\n=== ADMIN DASHBOARD ===\n\n");
     printf("1. List all shops\n");
     printf("2. Delete shop\n");
     printf("3. List all customers\n");
-    printf("4. Back to main menu\n");
+    printf("4. Back to main menu\n"); 
+    return 0;
 }
 
 int admin_dashboard() {
