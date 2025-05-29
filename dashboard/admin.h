@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <string.h>
 
+int adminMenu();
+int admin_dashboard();
 
 int adminMenu() {
     printf("\n\n=== ADMIN DASHBOARD ===\n\n");

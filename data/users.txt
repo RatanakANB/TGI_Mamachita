@@ -1,4 +1,3 @@
-admin:ehqmr:0
-admin1:ehqmr7:1
-admin2:ehqmr8:2
-ziento:dmvrxs:2
+AD1,admin,ehqmr,0
+SPspo290525,shop,wlst,1
+CM290525cus5,cus,gyw,2
