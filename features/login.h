@@ -110,7 +110,7 @@ int login() {
                 break;
             case USER_TYPE_SHOP:
                 printf("User Type: Shop\n");
-                shop_dashboard(name);
+                shop_dashboard(user.id, name); // Pass both storeID and storeName
                 break;
             case USER_TYPE_CUSTOMER:
                 printf("User Type: Customer\n");
