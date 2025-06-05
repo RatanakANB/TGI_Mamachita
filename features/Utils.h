@@ -10,6 +10,25 @@
 
 #define MAX_RETRIES 3
 
+// Function prototypes
+int is_numeric(const char *str);
+void clear_input_buffer();
+void trim_whitespace(char *str);
+int is_valid_float(const char *str);
+int get_validated_input(const char *prompt, char *buffer, size_t size, 
+                       int (*validator)(const char *), const char *error_msg);
+int is_item_exists(const char *storeID, const char *item_name);
+int is_product_id_exists(const char *storeID, const char *product_id);
+void get_current_datetime(char *datetime);
+
+int is_numeric(const char *str) {
+    if (!str || *str == '\0') return 0;
+    for (int i = 0; str[i]; i++) {
+        if (!isdigit(str[i])) return 0;
+    }
+    return 1;
+}
+
 void clear_input_buffer() {
     int c;
     while ((c = getchar()) != '\n' && c != EOF);

@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
-#include "struct.h"
-#include "Utils.h"
+#include "../features/struct.h"
+#include "../features/Utils.h"
 
 #define MIN_YEAR 2025
 #define MAX_YEAR 9999
@@ -53,15 +53,25 @@ int generate_product_id(char *productID) {
     FILE *file = fopen("../data/items.txt", "r");
     int max_id = 0;
     char line[512];
-    char temp_productID[MAX_PRODUCT_ID_LEN];
     if (file) {
         while (fgets(line, sizeof(line), file)) {
-            char temp_datetime[MAX_DATETIME_LEN] = "";
+            char temp_productID[MAX_PRODUCT_ID_LEN];
+            char storeID[MAX_ID_LEN];
+            char storeName[MAX_SHOP_NAME_LEN];
+            char name[MAX_ITEM_NAME_LEN];
+            int qty;
+            float price;
+            char expir[MAX_EXPIRY_LEN];
+            char category[MAX_ITEM_NAME_LEN];
+            char manufacturing[MAX_MANUFACTURING_LEN];
+            char country[MAX_MANUFACTURING_LEN];
+            char distributor[MAX_DISTRIBUTOR_LEN];
+            char created_datetime[MAX_DATETIME_LEN] = "";
             int parsed = sscanf(line, "%9[^,],%19[^,],%99[^,],%49[^,],%d,%f,%10[^,],%49[^,],%49[^,],%49[^,],%99[^,],%17[^\n]",
-                                temp_productID, &temp_productID[10], &temp_productID[30], &temp_productID[130], 
-                                &max_id, &max_id, &temp_productID[140], &temp_productID[150], 
-                                &temp_productID[200], &temp_productID[250], &temp_productID[300], temp_datetime);
-            if (parsed == 11) temp_datetime[0] = '\0'; // Old format without datetime
+                                temp_productID, storeID, storeName, name, 
+                                &qty, &price, expir, category, 
+                                manufacturing, country, distributor, created_datetime);
+            if (parsed == 11) created_datetime[0] = '\0'; // Old format without datetime
             if ((parsed == 11 || parsed == 12) && strncmp(temp_productID, "PRD", 3) == 0 && strlen(temp_productID) >= 6) {
                 int id_num = atoi(temp_productID + 3);
                 if (id_num > max_id && id_num < 999) {

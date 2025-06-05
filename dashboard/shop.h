@@ -6,6 +6,7 @@
 #include "../features/AddItems.h"
 #include "../features/Update.h"
 #include "../features/ViewItems.h"
+#include "../features/Utils.h" // Added to include is_numeric
 
 int shopMenu(const char *storeID, const char *storeName);
 int shop_dashboard(const char *storeID, const char *storeName);

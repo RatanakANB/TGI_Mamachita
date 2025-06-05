@@ -114,7 +114,7 @@ int login() {
                 break;
             case USER_TYPE_CUSTOMER:
                 printf("User Type: Customer\n");
-                customer_dashboard(name);
+                customer_dashboard(user.id); // Pass user.id instead of name
                 break;
             default:
                 printf("User type (%d) is recognized but not specifically handled after login.\n", user.usertype);

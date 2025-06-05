@@ -2,9 +2,12 @@
     "files.associations": {
         "menu.h": "c",
         "string.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "struct.h": "c",
+        "additems.h": "c"
     },
     "idf.espIdfPathWin": "C:\\Users\\PC\\esp\\v5.4.1\\esp-idf",
     "idf.toolsPathWin": "C:\\Users\\PC\\.espressif",
-    "idf.pythonInstallPath": "C:\\Users\\PC\\.espressif\\tools\\idf-python\\3.11.2\\python.exe"
+    "idf.pythonInstallPath": "C:\\Users\\PC\\.espressif\\tools\\idf-python\\3.11.2\\python.exe",
+    "files.exclude": {}
 }
