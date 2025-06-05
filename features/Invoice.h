@@ -29,20 +29,20 @@ int generate_invoice(const char *userID, const char *customer_name, CartItem *ca
     printf("Invoice ID: %s\n", invoice_id);
     printf("Customer: %s\n", customer_name);
     printf("Date: %s\n", datetime);
-    printf("---------------------------------------------\n");
-    printf("| %-20s | %-5s | %-10s | %-10s |\n", 
-           "PRODUCT NAME", "QTY", "UNIT PRICE", "TOTAL");
-    printf("---------------------------------------------\n");
+    printf("-------------------------------------------------------------\n");
+    printf("| %-20s | %-15s | %-5s | %-10s | %-10s |\n", 
+           "PRODUCT NAME", "SHOP NAME", "QTY", "UNIT PRICE", "TOTAL");
+    printf("-------------------------------------------------------------\n");
     float overall_total = 0.0;
     for (int i = 0; i < cart_count; i++) {
-        printf("| %-20s | %-5d | $%-9.2f | $%-9.2f |\n",
-               product_names[i], cart_items[i].qty, unit_prices[i], totals[i]);
+        printf("| %-20s | %-15s | %-5d | $%-9.2f | $%-9.2f |\n",
+               product_names[i], shop_names[i], cart_items[i].qty, unit_prices[i], totals[i]);
         overall_total += totals[i];
     }
-    printf("---------------------------------------------\n");
-    printf("| %-20s | %-5s | %-10s | $%-9.2f |\n", 
-           "OVERALL TOTAL", "", "", overall_total);
-    printf("---------------------------------------------\n");
+    printf("-------------------------------------------------------------\n");
+    printf("| %-20s | %-15s | %-5s | %-10s | $%-9.2f |\n", 
+           "OVERALL TOTAL", "", "", "", overall_total);
+    printf("-------------------------------------------------------------\n");
     printf("Remaining Balance: $%.2f\n", remaining_balance);
     return 1;
 }
@@ -107,10 +107,10 @@ int retrieve_invoice(const char *invoice_id) {
     
     printf("Customer: %s\n", customer_name);
     printf("Date: %s\n", datetime);
-    printf("---------------------------------------------\n");
-    printf("| %-20s | %-5s | %-10s | %-10s |\n", 
-           "PRODUCT NAME", "QTY", "UNIT PRICE", "TOTAL");
-    printf("---------------------------------------------\n");
+    printf("-------------------------------------------------------------\n");
+    printf("| %-20s | %-15s | %-5s | %-10s | %-10s |\n", 
+           "PRODUCT NAME", "SHOP NAME", "QTY", "UNIT PRICE", "TOTAL");
+    printf("-------------------------------------------------------------\n");
     
     // Second pass: Display invoice details
     rewind(invoice_file);
@@ -123,8 +123,9 @@ int retrieve_invoice(const char *invoice_id) {
                             temp_invoice_id, user_id, product_id, shop_id,
                             &qty, &unit_price, &total, temp_datetime);
         if (parsed == 8 && strcmp(temp_invoice_id, invoice_id) == 0) {
-            // Get product name
+            // Get product name and shop name
             char product_name[MAX_ITEM_NAME_LEN] = "Unknown";
+            char shop_name[MAX_SHOP_NAME_LEN] = "Unknown";
             FILE *items_file = fopen("../data/items.txt", "r");
             if (items_file) {
                 char item_line[512];
@@ -135,23 +136,26 @@ int retrieve_invoice(const char *invoice_id) {
                                             item.productID, item.storeID, item.storeName, item.name,
                                             &item.qty, &item.price, item.expir, item.category,
                                             item.manufacturing, item.country, item.distributor, temp_datetime_item);
-                    if ((item_parsed == 11 || item_parsed == 12) && strcmp(item.productID, product_id) == 0) {
+                    if ((item_parsed == 11 || item_parsed == 12) && 
+                        strcmp(item.productID, product_id) == 0 && 
+                        strcmp(item.storeID, shop_id) == 0) {
                         strcpy(product_name, item.name);
+                        strcpy(shop_name, item.storeName);
                         break;
                     }
                 }
                 fclose(items_file);
             }
-            printf("| %-20s | %-5d | $%-9.2f | $%-9.2f |\n",
-                   product_name, qty, unit_price, total);
+            printf("| %-20s | %-15s | %-5d | $%-9.2f | $%-9.2f |\n",
+                   product_name, shop_name, qty, unit_price, total);
             overall_total += total;
         }
     }
     fclose(invoice_file);
-    printf("---------------------------------------------\n");
-    printf("| %-20s | %-5s | %-10s | $%-9.2f |\n", 
-           "OVERALL TOTAL", "", "", overall_total);
-    printf("---------------------------------------------\n");
+    printf("-------------------------------------------------------------\n");
+    printf("| %-20s | %-15s | %-5s | %-10s | $%-9.2f |\n", 
+           "OVERALL TOTAL", "", "", "", overall_total);
+    printf("-------------------------------------------------------------\n");
     return 1;
 }
 
@@ -222,32 +226,52 @@ int list_invoices(const char *userID) {
     // Display invoice list
     printf("\n=== INVOICE LIST ===\n");
     printf("--------------------------------------------------\n");
-    printf("| %-5s | %-12s | %-12s | %-17s |\n", 
+    printf("| %-5s | %-12s | %-12s | %-17s |\n",
            "NO.", "INVOICE ID", "TOTAL SPEND", "DATETIME");
-    printf("--------------------------------------------------\n");
     for (int i = 0; i < invoice_count; i++) {
-        printf("| %-5d | %-12s | $%-11.2f | %-17s |\n",
+        printf("| %-5d | %-12s | $%-11.2f | %-17s\n",
                i + 1, invoices[i].invoice_id, invoices[i].total_spend, invoices[i].datetime);
     }
     printf("--------------------------------------------------\n");
 
     // Prompt user to select an invoice
     char input[100];
-    int result = get_validated_input("Enter invoice number (or 'back' to return): ", input, sizeof(input),
-                                    is_numeric, "Please enter a valid number.");
-    if (result <= 0) {
-        if (result == -1) printf("Returning to customer dashboard...\n");
-        return 0;
-    }
-    int invoice_index = atoi(input) - 1;
-    if (invoice_index < 0 || invoice_index >= invoice_count) {
-        printf("Invalid invoice number. Please select a number between 1 and %d.\n", invoice_count);
+    printf("Enter invoice number or ID (or 'back' to return): ");
+    if (fgets(input, sizeof(input), stdin)) {
+        input[strcspn(input, "\n")] = '\0';
+        trim_whitespace(input);
+        if (strcmp(input, "back") == 0) {
+            printf("Returning to customer dashboard...\n");
+            return 0;
+        }
+        // Check if input is an invoice ID
+        if (strlen(input) == 12 && strncmp(input, "INV", 3) == 0) {
+            // Validate invoice ID exists
+            for (int i = 0; i < invoice_count; i++) {
+                if (strcmp(invoices[i].invoice_id, input) == 0) {
+                    return retrieve_invoice(input);
+                }
+            }
+            printf("Invalid invoice ID '%s'. Please enter a valid invoice ID or number.\n", input);
+            printf("Returning to customer dashboard...\n");
+            return 0;
+        }
+        // Check if input is a number
+        if (is_numeric(input)) {
+            int invoice_index = atoi(input) - 1;
+            if (invoice_index >= 0 && invoice_index < invoice_count) {
+                return retrieve_invoice(invoices[invoice_index].invoice_id); // shop_id
+            }
+            printf("Invalid invoice number. Please select a number between 1 and %d.\n", invoice_count);
+            printf("Returning to customer dashboard...\n");
+            return 0;
+        }
+        printf("Invalid input. Please enter a number or a valid invoice ID (e.g., INV0506250001).\n");
         printf("Returning to customer dashboard...\n");
         return 0;
     }
-
-    // Retrieve selected invoice
-    return retrieve_invoice(invoices[invoice_index].invoice_id);
+    printf("Error reading input. ID Returning to customer dashboard...\n");
+    return 0;
 }
 
 #endif
