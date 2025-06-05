@@ -7,6 +7,7 @@
 #include <time.h>
 #include "encryption.h"
 #include "struct.h" // Include the struct definitions
+#include "Utils.h"  // Include get_current_datetime
 
 #define USER_TYPE_ADMIN 0
 #define USER_TYPE_SHOP  1
@@ -16,22 +17,14 @@ int is_user_exists(const char *username);
 int register_user();
 int count_users();
 static inline void regiType();
-void get_current_date(char *date);
-void generate_shop_id(char *unique_id, const char *shop_name);
-void generate_customer_id(char *unique_id, const char *username);
-void generate_admin_id(char *unique_id, int user_count);
-
-// Function to get current date in DDMMYY format
-void get_current_date(char *date) {
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
-    strftime(date, 7, "%d%m%y", tm); // Format as DDMMYY
-}
 
 // Function to generate UniqueID for Shop
 void generate_shop_id(char *unique_id, const char *shop_name) {
+    char datetime[13];
+    get_current_datetime(datetime); // Get dynamic datetime
     char date[7];
-    get_current_date(date); // Get dynamic date
+    strncpy(date, datetime, 6); // Extract ddmmyy
+    date[6] = '\0';
     int len = strlen(shop_name);
     char middle = len > 0 ? shop_name[len / 2] : 'X'; // Middle character, default 'X'
     char first = len > 0 ? shop_name[0] : 'X'; // First character, default 'X'
@@ -41,8 +34,11 @@ void generate_shop_id(char *unique_id, const char *shop_name) {
 
 // Function to generate UniqueID for Customer
 void generate_customer_id(char *unique_id, const char *username) {
+    char datetime[13];
+    get_current_datetime(datetime); // Get dynamic datetime
     char date[7];
-    get_current_date(date); // Get dynamic date
+    strncpy(date, datetime, 6); // Extract ddmmyy
+    date[6] = '\0';
     char user_part[4] = "___"; // Default padding with underscores
     int len = strlen(username);
     for (int i = 0; i < 3 && i < len; i++) {
@@ -91,12 +87,12 @@ int is_user_exists(const char *username) {
     char line[150]; 
     userName user;
     while (fgets(line, sizeof(line), file) != NULL) {
-        if (sscanf(line, "%19[^,],%49[^,],%49[^,],%d", 
-                   user.id, user.username, user.password, &user.usertype) == 4) { 
-            if (strcmp(user.username, username) == 0) {
-                fclose(file);
-                return 1;
-            }
+        int parsed = sscanf(line, "%19[^,],%49[^,],%49[^,],%d,%12[^,\n]", 
+                           user.id, user.username, user.password, &user.usertype, user.creation_datetime);
+        if (parsed >= 4 && strcmp(user.username, username) == 0) { 
+            if (parsed < 5) user.creation_datetime[0] = '\0'; // Backward compatibility
+            fclose(file);
+            return 1;
         }
     }
     fclose(file);
@@ -147,6 +143,9 @@ int register_user() {
     }
 
     encrypt_password(user.password); // Encrypt the password in place
+
+    // Set creation datetime
+    get_current_datetime(user.creation_datetime);
 
     if (existing_users_count == 0) {
         user.usertype = USER_TYPE_ADMIN;
@@ -200,7 +199,7 @@ int register_user() {
         return 0;
     }
 
-    fprintf(file, "%s,%s,%s,%d\n", user.id, user.username, user.password, user.usertype);
+    fprintf(file, "%s,%s,%s,%d,%s\n", user.id, user.username, user.password, user.usertype, user.creation_datetime);
     fclose(file);
 
     if (user.usertype == USER_TYPE_SHOP) {
@@ -231,7 +230,8 @@ int register_user() {
         default: type_string = "Unknown"; break;
     }
 
-    printf("Registration successful for user '%s' as a %s with ID '%s'!\n", user.username, type_string, user.id);
+    printf("Registration successful for user '%s' as a %s with ID '%s' on %s!\n", 
+           user.username, type_string, user.id, user.creation_datetime);
     printf("You can now log in.\n");
     printf("Returning to menu...\n");
     return 0; 

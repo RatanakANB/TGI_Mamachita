@@ -1,7 +1,8 @@
 {
     "files.associations": {
         "menu.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "stdio.h": "c"
     },
     "idf.espIdfPathWin": "C:\\Users\\PC\\esp\\v5.4.1\\esp-idf",
     "idf.toolsPathWin": "C:\\Users\\PC\\.espressif",

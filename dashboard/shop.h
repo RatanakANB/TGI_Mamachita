@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "../features/AddItems.h"
+#include "../features/Update.h"
 #include "../features/ViewItems.h"
 
 int shopMenu(const char *storeID, const char *storeName);
