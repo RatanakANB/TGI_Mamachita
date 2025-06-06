@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../features/struct.h"
-#include "../features/Utils.h"
-#include "../features/ViewItems.h"
+#include "struct.h"
+#include "Utils.h"
+#include "ViewItems.h"
 
 int browse_shops(const char *userID) {
     if (!userID || strlen(userID) < 10 || strncmp(userID, "CM", 2) != 0) {
@@ -44,7 +44,7 @@ int browse_shops(const char *userID) {
     int index = 0;
     while (fgets(line, sizeof(line), file)) {
         sscanf(line, "%19[^,],%99[^\n]", shops[index].id, shops[index].shop_name);
-        if (strlen(shops[index].id) < 10 || strncmp(shops[index].id, "SPE", 3) != 0) {
+        if (strlen(shops[index].id) < 8 || strncmp(shops[index].id, "SP", 2) != 0) {
             printf("Invalid shop ID '%s' in shop.txt. Skipping.\n", shops[index].id);
             continue;
         }

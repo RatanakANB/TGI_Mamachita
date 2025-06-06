@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <time.h>
-#include "../features/struct.h"
-#include "../features/Utils.h"
+#include "struct.h"
+#include "Utils.h"
 
 #define MIN_YEAR 2025
 #define MAX_YEAR 9999

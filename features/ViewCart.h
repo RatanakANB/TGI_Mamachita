@@ -4,9 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "../features/struct.h"
-#include "../features/Utils.h"
-#include "../features/Checkout.h"
+#include "struct.h"
+#include "Utils.h"
+#include "Checkout.h"
 
 int view_cart(const char *userID) {
     if (!userID) {

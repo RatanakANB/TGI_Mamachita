@@ -4,7 +4,8 @@
         "string.h": "c",
         "stdio.h": "c",
         "struct.h": "c",
-        "additems.h": "c"
+        "additems.h": "c",
+        "time.h": "c"
     },
     "idf.espIdfPathWin": "C:\\Users\\PC\\esp\\v5.4.1\\esp-idf",
     "idf.toolsPathWin": "C:\\Users\\PC\\.espressif",

@@ -5,9 +5,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
-#include "../features/struct.h"
-#include "../features/Utils.h"
-#include "../features/Invoice.h"
+#include "struct.h"
+#include "Utils.h"
+#include "Invoice.h"
 
 int checkout(const char *userID) {
     if (!userID || strlen(userID) < 10 || strncmp(userID, "CM", 2) != 0) {
@@ -15,14 +15,11 @@ int checkout(const char *userID) {
         printf("Returning to customer dashboard...\n");
         return 0;
     }
-    // Read cart.txt
     FILE *cart_file = fopen("../data/cart.txt", "r");
     if (!cart_file) {
         printf("No cart items found. The cart.txt file does not exist or cannot be opened.\n");
-        printf("Returning to customer dashboard...\n");
         return 0;
     }
-    // Count cart items for user
     int cart_count = 0;
     char line[256];
     CartItem temp_cart;
@@ -31,8 +28,8 @@ int checkout(const char *userID) {
                             temp_cart.userID, temp_cart.productID, temp_cart.shopID,
                             &temp_cart.qty, temp_cart.datetime);
         if (parsed == 5 && strcmp(temp_cart.userID, userID) == 0) {
-            if (strlen(temp_cart.shopID) < 10 || strncmp(temp_cart.shopID, "SPE", 3) != 0) {
-                printf("Invalid shop ID '%s' in cart. Expected format: SPEddmmyyX.\n", temp_cart.shopID);
+            if (strlen(temp_cart.shopID) < 8 || strncmp(temp_cart.shopID, "SP", 2) != 0) {
+                printf("Invalid shop ID '%s' in cart. Expected format: SPddmmyyXXXX.\n", temp_cart.shopID);
                 fclose(cart_file);
                 return 0;
             }
@@ -46,7 +43,6 @@ int checkout(const char *userID) {
         printf("Returning to customer dashboard...\n");
         return 0;
     }
-    // Load cart items and item details
     CartItem *cart_items = (CartItem *)malloc(cart_count * sizeof(CartItem));
     char **product_names = (char **)malloc(cart_count * sizeof(char *));
     char **shop_names = (char **)malloc(cart_count * sizeof(char *));
@@ -154,12 +150,10 @@ int checkout(const char *userID) {
     }
     fclose(cart_file);
     fclose(items_file);
-    // Calculate total price
     float overall_total = 0.0;
     for (int i = 0; i < cart_count; i++) {
         overall_total += totals[i];
     }
-    // Check customer balance
     FILE *customer_file = fopen("../data/customer.txt", "r");
     if (!customer_file) {
         printf("Error accessing customer.txt.\n");
@@ -216,7 +210,6 @@ int checkout(const char *userID) {
         free(cart_items);
         return 0;
     }
-    // Display checkout table
     printf("\n=== Checkout ===\n");
     printf("------------------------------------------------------------------------------------\n");
     printf("| %-5s | %-20s | %-5s | %-15s | %-10s | %-10s |\n",
@@ -229,7 +222,6 @@ int checkout(const char *userID) {
     printf("------------------------------------------------------------------------------------\n");
     printf("| %-63s | $%-9.2f |\n", "OVERALL TOTAL", overall_total);
     printf("------------------------------------------------------------------------------------\n");
-    // Confirm checkout
     char input[10];
     int result = get_validated_input("Confirm checkout? (y/n): ", input, sizeof(input), NULL, NULL);
     if (result <= 0 || tolower(input[0]) != 'y') {
@@ -246,7 +238,6 @@ int checkout(const char *userID) {
         free(cart_items);
         return 0;
     }
-    // Update customer balance
     customer_file = fopen("../data/customer.txt", "r");
     FILE *temp_customer_file = fopen("../data/customer_temp.txt", "w");
     if (!customer_file || !temp_customer_file) {
@@ -294,7 +285,6 @@ int checkout(const char *userID) {
         free(cart_items);
         return 0;
     }
-    // Update items.txt stock
     items_file = fopen("../data/items.txt", "r");
     FILE *temp_items_file = fopen("../data/items_temp.txt", "w");
     if (!items_file || !temp_items_file) {
@@ -357,36 +347,18 @@ int checkout(const char *userID) {
         free(cart_items);
         return 0;
     }
-    // Generate invoice ID and copy cart items to invoices.txt
-    char datetime[MAX_DATETIME_LEN];
-    get_current_datetime(datetime);
-    char date_prefix[7];
-    strncpy(date_prefix, datetime, 6); // ddmmyy
-    date_prefix[6] = '\0';
-    char invoice_id[13];
-    snprintf(invoice_id, sizeof(invoice_id), "INV%s%04d", date_prefix, 1); // Simplified, may need uniqueness check
-    FILE *invoice_file = fopen("../data/invoices.txt", "a");
-    if (!invoice_file) {
-        perror("Error opening invoices.txt");
-        for (int i = 0; i < cart_count; i++) {
-            free(product_names[i]);
-            free(shop_names[i]);
-        }
-        free(product_names);
-        free(shop_names);
-        free(unit_prices);
-        free(totals);
-        free(stock_quantities);
-        free(cart_items);
-        return 0;
-    }
+    generate_invoice(userID, customer.name, cart_items, product_names, shop_names, unit_prices, totals, cart_count, customer.balance - overall_total);
+    printf("✓ Checkout completed successfully! Total: $%.2f\n", overall_total);
     for (int i = 0; i < cart_count; i++) {
-        fprintf(invoice_file, "%s,%s,%s,%s,%d,%.2f,%.2f,%s\n",
-                invoice_id, userID, cart_items[i].productID, cart_items[i].shopID,
-                cart_items[i].qty, unit_prices[i], totals[i], datetime);
+        free(product_names[i]);
+        free(shop_names[i]);
     }
-    fclose(invoice_file);
-    // Remove user's cart items
+    free(product_names);
+    free(shop_names);
+    free(unit_prices);
+    free(totals);
+    free(stock_quantities);
+    free(cart_items);
     cart_file = fopen("../data/cart.txt", "r");
     FILE *temp_cart_file = fopen("../data/cart_temp.txt", "w");
     if (!cart_file || !temp_cart_file) {
@@ -431,20 +403,6 @@ int checkout(const char *userID) {
         free(cart_items);
         return 0;
     }
-    // Generate invoice display
-    generate_invoice(userID, customer.name, cart_items, product_names, shop_names, unit_prices, totals, cart_count, customer.balance - overall_total);
-    // Cleanup
-    printf("✓ Checkout completed successfully! Total: $%.2f\n", overall_total);
-    for (int i = 0; i < cart_count; i++) {
-        free(product_names[i]);
-        free(shop_names[i]);
-    }
-    free(product_names);
-    free(shop_names);
-    free(unit_prices);
-    free(totals);
-    free(stock_quantities);
-    free(cart_items);
     printf("Returning to customer dashboard...\n");
     return 1;
 }
