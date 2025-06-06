@@ -19,17 +19,35 @@ int count_users();
 static inline void regiType();
 
 // Function to generate UniqueID for Shop
-void generate_shop_id(char *unique_id, const char *shop_name) {
+void generate_shop_id(char *unique_id, const char *shop_name __attribute__((unused))) {
     char datetime[13];
     get_current_datetime(datetime); // Get dynamic datetime
-    char date[7];
-    strncpy(date, datetime, 6); // Extract ddmmyy
-    date[6] = '\0';
-    int len = strlen(shop_name);
-    char middle = len > 0 ? shop_name[len / 2] : 'X'; // Middle character, default 'X'
-    char first = len > 0 ? shop_name[0] : 'X'; // First character, default 'X'
-    char last = len > 0 ? shop_name[len - 1] : 'X'; // Last character, default 'X'
-    snprintf(unique_id, MAX_ID_LEN, "SP%c%c%c%s", first, last, middle, date);
+    char month_year[5];
+    strncpy(month_year, datetime + 3, 4); // Extract MMYY (e.g., 06-25 -> 0625)
+    month_year[4] = '\0';
+
+    // Count existing shops to determine the incrementing number
+    FILE *shop_file = fopen("../data/shop.txt", "r");
+    int shop_count = 0;
+    char line[256];
+    if (shop_file) {
+        while (fgets(line, sizeof(line), shop_file)) {
+            char temp_id[MAX_ID_LEN];
+            if (sscanf(line, "%19[^,],%99[^\n]", temp_id, line) == 2) {
+                if (strncmp(temp_id, "SP", 2) == 0) {
+                    shop_count++;
+                }
+            }
+        }
+        fclose(shop_file);
+    }
+
+    // Generate incrementing number (0001 to 9999)
+    if (shop_count >= 9999) {
+        snprintf(unique_id, MAX_ID_LEN, "SP%s0000", month_year); // Fallback if max reached
+        return;
+    }
+    snprintf(unique_id, MAX_ID_LEN, "SP%s%04d", month_year, shop_count + 1);
 }
 
 // Function to generate UniqueID for Customer
